@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<title>Bienvenido a WebGL</title>
+		<meta charset="UTF-8"/>
+		<link rel="stylesheet" href="../css/webglbook.css" /> 
+		<script src="../build/three.js"></script>
+		<script>
+		var renderer = null, 
+			scene = null, 
+			camera = null,
+			cube = null,
+			cylinder = null,
+			dodecahedro = null,
+			icosahedro = null,
+			sphere = null,
+			torus = null,
+			animating = false,
+			contador = 0,
+			material0 = null,
+			material1 = null,
+			material2 = null;
+		var geometries = null;
+			
+		function onLoad()
+		{
+			// Grab our container div
+	        var container = document.getElementById("container");
+
+		    // Create a new Three.js scene
+		    scene = new THREE.Scene();
+
+		    // Put in a camera
+	        camera = new THREE.PerspectiveCamera( 45, container.offsetWidth / container.offsetHeight, 1, 4000 );
+	        camera.position.set( 0, 0, 3 );
+
+	        // Create the Three.js renderer, add it to our div
+		    renderer = new THREE.WebGLRenderer({ antialias: true });
+		    renderer.setSize(container.offsetWidth, container.offsetHeight);
+		    container.appendChild( renderer.domElement );
+
+	        // Create a directional light to show off the object
+			var light = new THREE.DirectionalLight( 0xffffff, 1.5);
+			light.position.set(0, 0, 1);
+			scene.add( light );
+
+	        // Create a shaded, texture-mapped cube and add it to the scene
+	        // First, create the texture map
+	        var mapUrl = "images/molumen_small_funny_angry_monster.gif";
+	        //var map = THREE.ImageUtils.loadTexture(mapUrl);
+	        var texture = new THREE.TextureLoader().load( mapUrl );
+	        
+	        // Now, create a Phong material to show shading; pass in the map
+	        var material = new THREE.MeshPhongMaterial({map:texture});
+	        material0 = new THREE.MeshPhongMaterial({map:texture});
+	        material1 = new THREE.MeshStandardMaterial({map:texture});
+	        material2 = new THREE.MeshBasicMaterial({map:texture});
+	        // Create the cube geometry
+
+	        var geometry = new THREE.BoxGeometry( 1, 1, 1 );
+			
+			// Se crea el objeto para la malla con la geometría y el material correspondiente
+			cube = new THREE.Mesh( geometry, material );
+			scene.add( cube );
+
+			// CILINDRO
+			geometry = new THREE.CylinderGeometry( 0.5, 0.5, 1.5, 25 );
+			cylinder = new THREE.Mesh( geometry, material );
+			scene.add( cylinder );
+
+			//DODECAHEDRON
+			geometry = new THREE.DodecahedronGeometry();
+			dodecahedro = new THREE.Mesh( geometry, material );
+			scene.add( dodecahedro );
+
+			//ICOSAHEDRON
+			geometry = new THREE.IcosahedronGeometry();
+			icosahedro = new THREE.Mesh( geometry, material );
+			scene.add( icosahedro );
+
+			//SPHERE
+			geometry = new THREE.SphereGeometry( 1, 30, 25, 0, Math.PI * 2, 0, Math.PI);
+			sphere = new THREE.Mesh( geometry, material );
+			scene.add( sphere );
+
+			//TORUS
+			geometry = new THREE.TorusGeometry(1,0.4,100,100, Math.PI*2 );
+			torus = new THREE.Mesh( geometry, material );
+			scene.add( torus );
+			
+			var width = container.offsetWidth,
+				height = container.offsetHeight;
+
+			cube.position.set(-width/3*0.01,(screen.height/2*0.01)/2,0);
+			cylinder.position.set(0,(screen.height/2*0.01)/2,0);
+			dodecahedro.position.set(width/3*0.01,(screen.height/2*0.01)/2,0);
+			icosahedro.position.set(-width/3*0.01,-(screen.height/2*0.01)/2,0);
+			sphere.position.set(0,-(screen.height/2*0.01)/2,0);
+			torus.position.set(width/3*0.01,-(screen.height/2*0.01)/2,0);
+
+			geometries = [
+			cube,
+			cylinder,
+			dodecahedro,
+			icosahedro,
+			sphere,
+			torus
+		];
+	        cube.rotation.x = Math.PI / 5;
+	        cube.rotation.y = Math.PI / 5;
+
+			camera.position.z = 10;
+	        // Add a mouse up handler to toggle the animation
+	        addMouseHandler();
+
+	        // Run our render loop
+	        run();
+		}
+
+		function run()
+		{
+			// Render the scene
+			renderer.render( scene, camera );
+
+			for ( var i = 0; i < geometries.length; i++ ) {
+			
+				geometries[i].rotation.y -= 0.01;
+				geometries[i].rotation.x -= 0.01;
+
+			}
+
+			// Ask for another frame
+	    	requestAnimationFrame(run);	
+		}
+
+		function addMouseHandler()
+		{
+			var dom = renderer.domElement;
+			
+			dom.addEventListener( 'mouseup', onMouseUp, false);
+		}
+		
+		function onMouseUp	(event)
+		{
+		    event.preventDefault();
+			
+			console.log(contador);
+		    switch (contador){
+		    	case 0: 
+		    		for ( var i = 0; i < geometries.length; i++ ) {
+
+		    			geometries[i].material = material0;
+
+		    		}
+		    	break;
+		    	case 1: 
+		    		for ( var i = 0; i < geometries.length; i++ ) {
+
+		    			geometries[i].material = material1;
+
+		    		}
+		    	break;
+		    	case 2: 
+		    		for ( var i = 0; i < geometries.length; i++ ) {
+
+		    			geometries[i].material = material2;
+
+		    		}
+		    	break;
+		    	default:
+		    		for ( var i = 0; i < geometries.length; i++ ) {
+
+		    			geometries[i].material = material0;
+
+		    		}
+		    }
+
+		    if (contador < 3) {
+		    	contador++;
+		    }else{
+		    	contador = 0;
+		    }
+		    
+		    
+		    
+
+		}	
+		</script>
+	</head>
+	<body onLoad="onLoad();" style="">
+	    <div id="container" style="width:100%; height:100%; position:absolute;"></div>
+	</body>
+</html>
