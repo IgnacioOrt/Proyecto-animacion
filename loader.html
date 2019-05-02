@@ -68,6 +68,7 @@
 			var clock = new THREE.Clock();
 			var radius = 6371;
 			var x = 0;
+			var z = 100;
 			var MARGIN = 0;
 			var SCREEN_HEIGHT = window.innerHeight - MARGIN * 2;
 			var SCREEN_WIDTH = window.innerWidth;
@@ -86,12 +87,13 @@
 				document.body.appendChild( container );
 
 				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
-				camera.position.set( 100, 200, 300 );
+				camera.position.set( 0, 0, 0 );
 
 				
 				scene = new THREE.Scene();
 				/*scene.background = new THREE.Color( 0xffffff );*/
 				
+
 
 				light = new THREE.HemisphereLight( 0xffffff, 0x444444 );
 				light.position.set( 0, 200, 0 );
@@ -135,7 +137,7 @@ scene.add( particles );
 
 				// model
 				var loader = new THREE.FBXLoader();
-				loader.load( 'models/nave3.fbx', function ( object ) {
+				loader.load( 'models/nave_front.fbx', function ( object ) {
 					obj = object;
 					mixer = new THREE.AnimationMixer( object );
 
@@ -154,19 +156,20 @@ scene.add( particles );
 					} );
 
 					scene.add( object );
-					object.position.set(100,200,100);
+					object.position.set(-50,0,-500);
+					object.scale.set(0.5,0.5,0.5);
 	
         			object.updateMatrix();
 
 				} );
-
-				console.log(camera.position);
 
 				renderer = new THREE.WebGLRenderer( { antialias: true } );
 				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				renderer.shadowMap.enabled = true;
 				container.appendChild( renderer.domElement );
+
+				window.addEventListener( 'resize', onWindowResize, false );
 
 				
 
@@ -190,21 +193,42 @@ scene.add( particles );
 			function animate() {
 
 				requestAnimationFrame( animate );
+				var delta = clock.getDelta();
+				var time = clock.getElapsedTime();
 				/*camera.position.x = radius * Math.cos( angle );  */
 				/*console.log(mixer);*/
-								
+
+				if (obj) {
+					obj.position.x = x;
+					
+					camera.position.x = x;
+					if ( time > 2.5 && time < 3) {
+						x -= 4;
+						angle = x + angle + 0.1;
+						obj.position.x = radius * Math.sin( angle );
+					}
+				}
 				
-				angle += 0.01;
+				/*x += 4;*/
+				
+				/*if (time < 2) {
+					if (z <= 100) {
+						z -= 4;
+						camera.position.z = z;
+					}
+				}
+				if ( time > 2.5 && time < 3) {
+					
+					angle = x + angle + 0.1;
+					obj.position.x = radius * Math.sin( angle );
+					camera.position.x = angle;
+					
+				}*/
 
-				var delta = clock.getDelta();
-
-				if ( mixer ) mixer.update( delta / 3 );
-
+				
+				/*console.log(clock.getElapsedTime() );*/
+				if ( mixer ) mixer.update( delta );
 				renderer.render( scene, camera );
-				
-
-				
-
 			}
 
 		</script>
