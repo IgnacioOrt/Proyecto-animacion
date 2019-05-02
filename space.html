@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>three.js webgl - FBX loader</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+	body {
+		font-family: Monospace;
+		background-color: #000;
+		color: #fff;
+		margin: 0px;
+		overflow: hidden;
+	}
+	#info {
+		color: #fff;
+		position: absolute;
+		top: 10px;
+		width: 100%;
+		text-align: center;
+		z-index: 100;
+		display:block;
+	}
+	#info a {
+		color: #046;
+		font-weight: bold;
+	}
+</style>
+</head>
+
+<body>
+
+
+	<script src="../build/three.js"></script>
+
+	<script src="js/libs/inflate.min.js"></script>
+	<script src="js/loaders/FBXLoader.js"></script>
+
+	<script src="js/controls/OrbitControls.js"></script>
+
+	<script src="js/WebGL.js"></script>
+	<script src="js/libs/stats.min.js"></script>
+	<script src="js/controls/FlyControls.js"></script>
+
+	<script src="js/shaders/CopyShader.js"></script>
+	<script src="js/shaders/FilmShader.js"></script>
+
+	<script src="js/postprocessing/EffectComposer.js"></script>
+	<script src="js/postprocessing/ClearPass.js"></script>
+	<script src="js/postprocessing/RenderPass.js"></script>
+	<script src="js/postprocessing/TexturePass.js"></script>
+	<script src="js/postprocessing/CubeTexturePass.js"></script>
+	<script src="js/postprocessing/ShaderPass.js"></script>
+
+
+
+	<script>
+		var clock = new THREE.Clock();
+		var mixer;
+
+			var actionZ = 0; //on left click action
+var rotationA = 3.1; // amount of rotation
+var movementSpeed = 4;
+var zoomSpeed = 10;
+var totalObjects = 40000;
+/////////////////////////////////
+var rotated = false; 
+var container = document.createElement('div');
+document.body.appendChild( container );
+
+var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight,1, 10000)
+camera.position.set( 100, 200, 300 );
+
+var scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2( 0x555555, 0.0003 );  
+var geometry = new THREE.Geometry();
+
+for (i = 0; i < totalObjects; i ++) 
+{ 
+	var vertex = new THREE.Vector3();
+	vertex.x = Math.random()*40000-20000;
+	vertex.y = Math.random()*7000-3500;
+	vertex.z = Math.random()*7000-3500;
+	geometry.vertices.push( vertex );
+}
+
+var material = new THREE.ParticleBasicMaterial( { size: 6 });
+var particles = new THREE.ParticleSystem( geometry, material );
+
+scene.add( particles ); 
+
+camera.position.x = -10000;
+
+
+var renderer = new THREE.WebGLRenderer();
+renderer.setSize(window.innerWidth, window.innerHeight);
+container.appendChild( renderer.domElement );
+
+renderer.render( scene, camera );
+var loader = new THREE.FBXLoader();
+  loader.load( 'models/samba.fbx', function ( object ) {
+
+    mixer = new THREE.AnimationMixer( object );
+
+    var action = mixer.clipAction( object.animations[ 0 ] );
+    action.play();
+
+    object.traverse( function ( child ) {
+
+      if ( child.isMesh ) {
+
+        child.castShadow = true;
+        child.receiveShadow = true;
+
+      }
+
+    } );
+
+    scene.add( object );
+    object.position.set(0,-100,0);
+        object.updateMatrix();
+
+
+  } );
+
+render();
+
+function render() {
+	requestAnimationFrame( render );
+
+	move();
+
+	var delta = clock.getDelta();
+
+				if ( mixer ) mixer.update( delta );
+
+				renderer.render( scene, camera );
+
+}
+function move() {
+	if (!rotated && camera.position.x < 11000)
+	{
+		if(camera.position.x > 10000){
+			rotated = true;
+			if (camera.rotation.y < rotationA){
+				camera.rotation.y += .015;
+				rotated = false;
+			}
+			if (camera.position.z > -2000){
+				camera.position.z -= 19;
+				rotated = false;
+			}
+		}
+		else{
+			camera.position.x += movementSpeed;
+			camera.position.z += actionZ;
+		}
+	}
+	else if(rotated && camera.position.x > -11000){
+		if(camera.position.x < -10000){
+			rotated = false;
+			if (camera.rotation.y > 0){
+				camera.rotation.y -= .015;
+				rotated = true;
+			}
+			if (camera.position.z < 2000){
+				camera.position.z += 19;
+				rotated = true;
+			}
+		}
+		else{
+			camera.position.x -= movementSpeed;
+			camera.position.z -= actionZ;
+		}
+	}
+}
+
+</script>
+
+</body>
+</html>
