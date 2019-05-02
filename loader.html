@@ -78,7 +78,7 @@
 			var radius = 500;
 			var mixer;
 			var obj;
-
+			var cambio1 = 1, cambio2 = 1;
 			init();
 			animate();
 
@@ -88,18 +88,18 @@
 				document.body.appendChild( container );
 
 				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
-				camera.position.set( 0, 0, 0 );
+				camera.position.set( -500, 0, 500 );
 				cameraUp = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
 				cameraUp.position.set( 50, 1000, -500 );
 				cameraSide = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
 				cameraSide.position.set( 50, 500, 100 );
 				cameraFly = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
-				cameraFly.position.set( 100, 0, 500 );
+				cameraFly.position.set( 100, 0, 400 );
 				cameraUp.rotation.x = -90 * Math.PI / 180;
 				controls = new THREE.OrbitControls( cameraFly );
 
 
-				activeCamera = cameraFly;
+				activeCamera = camera;
 				scene = new THREE.Scene();
 				controls.update();
 
@@ -145,13 +145,13 @@ scene.add( particles );
 				
 				// model
 				var loader = new THREE.FBXLoader();
-				loader.load( 'models/nave_dog.fbx', function ( object ) {
+				loader.load( 'models/juntos.fbx', function ( object ) {
 					obj = object;
 					mixer = new THREE.AnimationMixer( object );
 
-					var action = mixer.clipAction( object.animations[ 0 ] );
-					action.clampWhenFinished = true;
-					action.loop = THREE.LoopOnce;
+					/*var action = mixer.clipAction( object.animations[ 0 ] );
+					action.clampWhenFinished = true;*/
+					/*action.loop = THREE.LoopOnce;*/
 					/*action.play();*/
 
 					object.traverse( function ( child ) {
@@ -172,7 +172,6 @@ scene.add( particles );
         			object.updateMatrix();
 
 				} );
-
 				renderer = new THREE.WebGLRenderer( { antialias: true } );
 				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.setSize( window.innerWidth, window.innerHeight );
@@ -215,7 +214,32 @@ scene.add( particles );
 			}
 
 			//
-
+			function changeCamera(time){
+				switch (time) {
+					case 10:
+					if (cambio1 > 0) {
+						console.log("Ningun tiempo" + time);
+						activeCamera = cameraUp;
+						cambio1--;
+					}
+					
+					
+					break;
+					case 20:
+					if (cambio2 > 0) {
+						console.log("Entro");
+						cameraFly.position.x = obj.position.x + 100;
+						cameraFly.position.z = obj.position.z + 400;
+						activeCamera = cameraFly;
+						cambio2--;
+					}
+					break;
+					
+					default:
+					console.log("Ningun tiempo" + time);
+					break;
+				}
+			}
 
 			function animate() {
 
@@ -224,43 +248,31 @@ scene.add( particles );
 				var time = clock.getElapsedTime();
 				if ( mixer ) mixer.update( delta );
 				var speed = Date.now() * 0.05;
-				/*if (obj) {
-					cameraUp.lookAt(obj.position);
-				}*/
-				
-				/*cameraUp.rotation.y = speed * Math.PI / 180;*/
-				/*cameraFly.rotation.y = speed * Math.PI / 180;*/
-				
-				/*camera.position.x = radius * Math.cos( angle );  */
-				/*console.log(mixer);*/
-
-				/*if (obj) {
+				if (Math.round(time) == 10) {
+					changeCamera(Math.round(time));
+				}
+				if (Math.round(time) == 20) {
+					changeCamera(Math.round(time));
+				}
+				if (obj) {
 					camera.position.x = x;
+					controls.target = obj.position;
 					obj.position.x = x;
 					cameraUp.position.x = x;
-					
 				}
-				
-				x += 4;*/
-				
-				renderer.render( scene, activeCamera );
-				controls.update();
-				/*if (time < 2) {
-					if (z <= 100) {
-						z -= 4;
-						camera.position.z = z;
+				if (time < 10) {
+					x += 4;	
+				}else{
+					if (time < 20) {
+						x += 4;
 					}
 				}
-				if ( time > 2.5 && time < 3) {
-					
-					angle = x + angle + 0.1;
-					obj.position.x = radius * Math.sin( angle );
-					camera.position.x = angle;
-					
-				}*/
-
 				
-				/*console.log(clock.getElapsedTime() );*/
+
+				controls.autoRotate = true;
+				renderer.render( scene, activeCamera );
+				controls.update();
+				
 				
 			}
 
