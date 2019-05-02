@@ -94,7 +94,6 @@
 				/*scene.background = new THREE.Color( 0xffffff );*/
 				
 
-
 				light = new THREE.HemisphereLight( 0xffffff, 0x444444 );
 				light.position.set( 0, 200, 0 );
 				scene.add( light );
@@ -137,11 +136,13 @@ scene.add( particles );
 
 				// model
 				var loader = new THREE.FBXLoader();
-				loader.load( 'models/nave_front.fbx', function ( object ) {
+				loader.load( 'models/nave_personaje.fbx', function ( object ) {
 					obj = object;
 					mixer = new THREE.AnimationMixer( object );
 
 					var action = mixer.clipAction( object.animations[ 0 ] );
+					action.clampWhenFinished = true;
+					/*action.loop = THREE.LoopOnce;*/
 					action.play();
 
 					object.traverse( function ( child ) {
@@ -156,7 +157,7 @@ scene.add( particles );
 					} );
 
 					scene.add( object );
-					object.position.set(-50,0,-500);
+					object.position.set(0,0,-500);
 					object.scale.set(0.5,0.5,0.5);
 	
         			object.updateMatrix();
@@ -195,10 +196,17 @@ scene.add( particles );
 				requestAnimationFrame( animate );
 				var delta = clock.getDelta();
 				var time = clock.getElapsedTime();
+				if ( mixer ) mixer.update( delta );
+				renderer.render( scene, camera );
 				/*camera.position.x = radius * Math.cos( angle );  */
 				/*console.log(mixer);*/
 
-				if (obj) {
+				/*if (obj) {
+					if (mixer.clampWhenFinished) {
+						console.log("Hola");
+					}else {
+						
+					}
 					obj.position.x = x;
 					
 					camera.position.x = x;
@@ -209,7 +217,7 @@ scene.add( particles );
 					}
 				}
 				
-				/*x += 4;*/
+				x += 4;*/
 				
 				/*if (time < 2) {
 					if (z <= 100) {
@@ -227,8 +235,7 @@ scene.add( particles );
 
 				
 				/*console.log(clock.getElapsedTime() );*/
-				if ( mixer ) mixer.update( delta );
-				renderer.render( scene, camera );
+				
 			}
 
 		</script>
