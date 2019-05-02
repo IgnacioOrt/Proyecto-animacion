@@ -64,6 +64,7 @@
 
 			var container, stats, controls;
 			var camera, scene, renderer, light;
+			var activeCamera;
 
 			var clock = new THREE.Clock();
 			var radius = 6371;
@@ -88,12 +89,23 @@
 
 				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
 				camera.position.set( 0, 0, 0 );
+				cameraUp = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
+				cameraUp.position.set( 50, 1000, -500 );
+				cameraSide = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
+				cameraSide.position.set( 50, 500, 100 );
+				cameraFly = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
+				cameraFly.position.set( 100, 0, 500 );
+				cameraUp.rotation.x = -90 * Math.PI / 180;
+				controls = new THREE.OrbitControls( cameraFly );
 
-				
+
+				activeCamera = cameraFly;
 				scene = new THREE.Scene();
-				/*scene.background = new THREE.Color( 0xffffff );*/
-				
+				controls.update();
 
+				/*scene.background = new THREE.Color( 0xffffff );*/
+				/*var speed = Date.now() * 0.0005;*/
+				
 
 				light = new THREE.HemisphereLight( 0xffffff, 0x444444 );
 				light.position.set( 0, 200, 0 );
@@ -130,19 +142,17 @@ scene.add( particles );
 				mesh.receiveShadow = true;
 				/*scene.add( mesh );*/
 
-				var grid = new THREE.GridHelper( 2000, 20, 0x000000, 0x000000 );
-				grid.material.opacity = 0.2;
-				grid.material.transparent = true;
-				/*scene.add( grid );*/
-
+				
 				// model
 				var loader = new THREE.FBXLoader();
-				loader.load( 'models/nave_front.fbx', function ( object ) {
+				loader.load( 'models/nave_dog.fbx', function ( object ) {
 					obj = object;
 					mixer = new THREE.AnimationMixer( object );
 
 					var action = mixer.clipAction( object.animations[ 0 ] );
-					action.play();
+					action.clampWhenFinished = true;
+					action.loop = THREE.LoopOnce;
+					/*action.play();*/
 
 					object.traverse( function ( child ) {
 
@@ -156,7 +166,7 @@ scene.add( particles );
 					} );
 
 					scene.add( object );
-					object.position.set(-50,0,-500);
+					object.position.set(0,0,-500);
 					object.scale.set(0.5,0.5,0.5);
 	
         			object.updateMatrix();
@@ -168,13 +178,9 @@ scene.add( particles );
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				renderer.shadowMap.enabled = true;
 				container.appendChild( renderer.domElement );
-
+			
 				window.addEventListener( 'resize', onWindowResize, false );
-
-				
-
-				window.addEventListener( 'resize', onWindowResize, false );
-				
+				document.addEventListener( 'keydown', onKeyDown, false );
 				
 
 			}
@@ -188,29 +194,57 @@ scene.add( particles );
 
 			}
 
+			function onKeyDown( event ) {
+
+				switch ( event.keyCode ) {
+
+					case 79: /*O*/
+
+						activeCamera = camera;
+						
+						break;
+
+					case 80: /*P*/
+
+						activeCamera = cameraUp;
+						
+						break;
+
+				}
+
+			}
+
 			//
+
 
 			function animate() {
 
 				requestAnimationFrame( animate );
 				var delta = clock.getDelta();
 				var time = clock.getElapsedTime();
+				if ( mixer ) mixer.update( delta );
+				var speed = Date.now() * 0.05;
+				/*if (obj) {
+					cameraUp.lookAt(obj.position);
+				}*/
+				
+				/*cameraUp.rotation.y = speed * Math.PI / 180;*/
+				/*cameraFly.rotation.y = speed * Math.PI / 180;*/
+				
 				/*camera.position.x = radius * Math.cos( angle );  */
 				/*console.log(mixer);*/
 
-				if (obj) {
-					obj.position.x = x;
-					
+				/*if (obj) {
 					camera.position.x = x;
-					if ( time > 2.5 && time < 3) {
-						x -= 4;
-						angle = x + angle + 0.1;
-						obj.position.x = radius * Math.sin( angle );
-					}
+					obj.position.x = x;
+					cameraUp.position.x = x;
+					
 				}
 				
-				/*x += 4;*/
+				x += 4;*/
 				
+				renderer.render( scene, activeCamera );
+				controls.update();
 				/*if (time < 2) {
 					if (z <= 100) {
 						z -= 4;
@@ -227,8 +261,7 @@ scene.add( particles );
 
 				
 				/*console.log(clock.getElapsedTime() );*/
-				if ( mixer ) mixer.update( delta );
-				renderer.render( scene, camera );
+				
 			}
 
 		</script>
