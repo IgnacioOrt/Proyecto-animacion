@@ -136,13 +136,13 @@ scene.add( particles );
 
 				// model
 				var loader = new THREE.FBXLoader();
-				loader.load( 'models/nave_personaje.fbx', function ( object ) {
+				loader.load( 'models/nave_dog.fbx', function ( object ) {
 					obj = object;
 					mixer = new THREE.AnimationMixer( object );
 
 					var action = mixer.clipAction( object.animations[ 0 ] );
 					action.clampWhenFinished = true;
-					/*action.loop = THREE.LoopOnce;*/
+					action.loop = THREE.LoopOnce;
 					action.play();
 
 					object.traverse( function ( child ) {
