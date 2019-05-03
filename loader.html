@@ -33,7 +33,7 @@
 		<div id="container"></div>
 		
 
-		<script src="../build/three.js"></script>
+		<script src="build/three.js"></script>
 
 		<script src="js/libs/inflate.min.js"></script>
 		<script src="js/loaders/FBXLoader.js"></script>
@@ -235,9 +235,30 @@
 						}
 
 					} );
+					object.position.set(0,0,-500);
+					object.scale.set(0.5,0.5,0.5);
 					scene2.add( object );
 					
 
+				} );
+				loader = new THREE.FBXLoader();
+				loader.load( 'models/planeta.fbx', function ( object ) {
+					obj3 = object;
+					
+					object.traverse( function ( child ) {
+
+						if ( child.isMesh ) {
+
+							child.castShadow = true;
+							child.receiveShadow = true;
+
+						}
+
+					} );
+					object.updateMatrix();
+					object.position.set(-50000,0,0);
+					scene.add( object );
+					
 				} );
 				renderer = new THREE.WebGLRenderer( { antialias: true } );
 				renderer.setPixelRatio( window.devicePixelRatio );
@@ -310,7 +331,7 @@
 					break;
 					case 40:
 					if (cambio4 > 0) {
-						
+						obj3.position.x = x + 2000 ;
 						cambio4--;
 					}
 					break;
