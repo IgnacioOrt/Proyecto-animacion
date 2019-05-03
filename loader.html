@@ -30,6 +30,8 @@
 
 	<body>
 		
+		<div id="container"></div>
+		
 
 		<script src="../build/three.js"></script>
 
@@ -51,9 +53,7 @@
 		<script src="js/postprocessing/TexturePass.js"></script>
 		<script src="js/postprocessing/CubeTexturePass.js"></script>
 		<script src="js/postprocessing/ShaderPass.js"></script>
-
 		
-
 		<script>
 
 			if ( WEBGL.isWebGLAvailable() === false ) {
@@ -65,7 +65,7 @@
 			var container, stats, controls;
 			var camera, scene, renderer, light;
 			var activeCamera;
-
+			
 			var clock = new THREE.Clock();
 			var radius = 6371;
 			var x = 0;
@@ -78,7 +78,14 @@
 			var radius = 500;
 			var mixer;
 			var obj;
-			var cambio1 = 1, cambio2 = 1;
+			var cambio1 = 1, cambio2 = 1, cambio3 = 1;
+			var cameraUp, cameraSide, cameraFly;
+			var scene2, renderer2;
+			var cameraIn;
+			var parte1 = true;
+			var parte2 = false;
+			var transtition;
+			var obj2, mixer2;
 			init();
 			animate();
 
@@ -93,7 +100,7 @@
 				cameraUp.position.set( 50, 1000, -500 );
 				cameraSide = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
 				cameraSide.position.set( 50, 500, 100 );
-				cameraFly = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
+				cameraFly = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
 				cameraFly.position.set( 100, 0, 400 );
 				cameraUp.rotation.x = -90 * Math.PI / 180;
 				controls = new THREE.OrbitControls( cameraFly );
@@ -102,10 +109,15 @@
 				activeCamera = camera;
 				scene = new THREE.Scene();
 				controls.update();
+				controls.autoRotate = true;
 
-				/*scene.background = new THREE.Color( 0xffffff );*/
-				/*var speed = Date.now() * 0.0005;*/
-				
+				cameraIn = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
+
+				scene2 = new THREE.Scene();
+				renderer2 = new THREE.WebGLRenderer();
+				renderer2.setSize( window.innerWidth, window.innerHeight );
+				document.body.appendChild( renderer2.domElement );
+
 
 				light = new THREE.HemisphereLight( 0xffffff, 0x444444 );
 				light.position.set( 0, 200, 0 );
@@ -136,11 +148,7 @@ var material = new THREE.PointsMaterial( { size: 6 });
 var particles = new THREE.Points( geometry, material );
 
 scene.add( particles ); 
-				// ground
-				var mesh = new THREE.Mesh( new THREE.PlaneBufferGeometry( 2000, 2000 ), new THREE.MeshPhongMaterial( { color: 0x999999, depthWrite: false } ) );
-				mesh.rotation.x = - Math.PI / 2;
-				mesh.receiveShadow = true;
-				/*scene.add( mesh );*/
+						
 
 				
 				// model
@@ -172,6 +180,34 @@ scene.add( particles );
         			object.updateMatrix();
 
 				} );
+				loader = new THREE.FBXLoader();
+				loader.load( 'models/interior.fbx', function ( object ) {
+					obj2 = object;
+					mixer2 = new THREE.AnimationMixer( object );
+
+					/*var action = mixer.clipAction( object.animations[ 0 ] );
+					action.clampWhenFinished = true;*/
+					/*action.loop = THREE.LoopOnce;*/
+					/*action.play();*/
+
+					object.traverse( function ( child ) {
+
+						if ( child.isMesh ) {
+
+							child.castShadow = true;
+							child.receiveShadow = true;
+
+						}
+
+					} );
+
+					scene2.add( object );
+					object.position.set(0,0,-500);
+					object.scale.set(0.5,0.5,0.5);
+	
+        			object.updateMatrix();
+
+				} );
 				renderer = new THREE.WebGLRenderer( { antialias: true } );
 				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.setSize( window.innerWidth, window.innerHeight );
@@ -180,6 +216,8 @@ scene.add( particles );
 			
 				window.addEventListener( 'resize', onWindowResize, false );
 				document.addEventListener( 'keydown', onKeyDown, false );
+				
+				
 				
 
 			}
@@ -228,13 +266,18 @@ scene.add( particles );
 					case 20:
 					if (cambio2 > 0) {
 						console.log("Entro");
-						cameraFly.position.x = obj.position.x + 100;
+						cameraFly.position.x = obj.position.x + 150;
 						cameraFly.position.z = obj.position.z + 400;
 						activeCamera = cameraFly;
 						cambio2--;
 					}
 					break;
-					
+					case 30:
+					if (cambio3 > 0) {
+						controls.autoRotate = false;
+						cambio3--;
+					}
+					break;
 					default:
 					console.log("Ningun tiempo" + time);
 					break;
@@ -246,37 +289,47 @@ scene.add( particles );
 				requestAnimationFrame( animate );
 				var delta = clock.getDelta();
 				var time = clock.getElapsedTime();
-				if ( mixer ) mixer.update( delta );
-				var speed = Date.now() * 0.05;
-				if (Math.round(time) == 10) {
-					changeCamera(Math.round(time));
-				}
-				if (Math.round(time) == 20) {
-					changeCamera(Math.round(time));
-				}
-				if (obj) {
-					camera.position.x = x;
-					controls.target = obj.position;
-					obj.position.x = x;
-					cameraUp.position.x = x;
-				}
-				if (time < 10) {
-					x += 4;	
-				}else{
-					if (time < 20) {
-						x += 4;
+				if (parte1 == true) {
+					if ( mixer ) mixer.update( delta );
+					var speed = Date.now() * 0.05;
+					if (Math.round(time) == 10) {
+						changeCamera(Math.round(time));
 					}
+					if (Math.round(time) == 20) {
+						changeCamera(Math.round(time));
+					}
+					if (Math.round(time) == 30) {
+						changeCamera(Math.round(time));
+					}
+					if (obj) {
+						camera.position.x = x;
+						controls.target = obj.position;
+						obj.position.x = x;
+						cameraUp.position.x = x;
+					}
+					if (time < 10) {
+						x += 4;	
+					}else{
+						if (time < 20) {
+							parte1 = false;
+							x += 4;
+						}
+						else{
+							if (time > 40 ) {
+								parte1 = false;
+							}
+						}
+						
+					}
+					renderer.render( scene, activeCamera );
+					controls.update();
+				}else{
+					if ( mixer2 ) mixer2.update( delta );
+					renderer.render( scene2, cameraIn );
 				}
-				
-
-				controls.autoRotate = true;
-				renderer.render( scene, activeCamera );
-				controls.update();
-				
-				
 			}
 
 		</script>
-
+		
 	</body>
 </html>
